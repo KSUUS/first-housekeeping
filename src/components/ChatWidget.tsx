@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { MessageCircle, X, Send, Phone } from 'lucide-react';
+import { MessageCircle, X, Send, Phone, Calendar } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import {
   isSupabaseConfigured,
@@ -11,6 +11,13 @@ import {
   type Message,
 } from '../lib/chat';
 import { cn } from '../lib/utils';
+
+const SERVICE_LABEL: Record<string, { en: string; zh: string }> = {
+  airDuct: { en: 'Air Duct Cleaning', zh: '空调管道清洁' },
+  dryerVent: { en: 'Dryer Vent Cleaning', zh: '烘干机管道清洁' },
+  carpet: { en: 'Carpet Cleaning', zh: '地毯清洗' },
+  multiple: { en: 'Multiple Services', zh: '多项服务' },
+};
 
 export function ChatWidget() {
   if (!isSupabaseConfigured) return <ChatFallback />;
@@ -148,6 +155,9 @@ function RealChat() {
             </button>
           </div>
 
+          {/* Appointment banner (only if scheduled and in future) */}
+          {conversation && <AppointmentBanner conversation={conversation} lang={lang} t={t} />}
+
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50">
             {/* Welcome bubble (always shown if no messages yet) */}
@@ -188,6 +198,56 @@ function RealChat() {
         </div>
       )}
     </>
+  );
+}
+
+function AppointmentBanner({
+  conversation,
+  lang,
+  t,
+}: {
+  conversation: Conversation;
+  lang: 'en' | 'zh';
+  t: ReturnType<typeof useLanguage>['t'];
+}) {
+  if (!conversation.appointment_at) return null;
+  const date = new Date(conversation.appointment_at);
+  if (isNaN(date.getTime())) return null;
+  if (date.getTime() < Date.now() - 4 * 60 * 60 * 1000) return null; // hide if >4hr in past
+
+  const dateStr = date.toLocaleString(lang === 'zh' ? 'zh-CN' : 'en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: lang !== 'zh',
+  });
+  const serviceKey = (conversation.appointment_service as string) || '';
+  const serviceLabel = SERVICE_LABEL[serviceKey]?.[lang];
+
+  return (
+    <div className="border-b border-emerald-200 bg-emerald-50 px-4 py-3">
+      <div className="flex items-start gap-2">
+        <Calendar className="w-4 h-4 text-emerald-700 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-0">
+          <div className="text-xs font-semibold text-emerald-900 uppercase tracking-wide">
+            {t.chat.appointmentBanner}
+          </div>
+          <div className="mt-0.5 text-sm font-medium text-slate-900">{dateStr}</div>
+          {serviceLabel && (
+            <div className="mt-0.5 text-xs text-slate-600">
+              <span className="font-medium">{t.chat.appointmentService}:</span> {serviceLabel}
+            </div>
+          )}
+          {conversation.appointment_notes && (
+            <div className="mt-0.5 text-xs text-slate-600 leading-snug">
+              <span className="font-medium">{t.chat.appointmentNotes}:</span> {conversation.appointment_notes}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 }
 

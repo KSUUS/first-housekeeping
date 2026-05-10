@@ -145,6 +145,7 @@ The chat lets customers message the business in English; the owner reads and rep
 1. In your Supabase dashboard, open **SQL Editor → New query**.
 2. Open `supabase/schema.sql` in this repo, copy the entire file, paste into the SQL editor.
 3. Click **Run**. You should see `Success. No rows returned`.
+4. Then run any **migrations** in `supabase/migrations/` in order (001, 002, …) the same way. Each migration is idempotent, safe to re-run.
 
 ### Step 3 — Create the owner login (1 min)
 

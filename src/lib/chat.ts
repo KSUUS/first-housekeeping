@@ -8,17 +8,35 @@ const SESSION_KEY = 'fh.chat.session';
 
 export type Sender = 'customer' | 'agent';
 
+export type ConversationStatus =
+  | 'new'
+  | 'in_progress'
+  | 'scheduled'
+  | 'completed'
+  | 'closed'
+  | 'spam';
+
+export type ServiceKey = 'airDuct' | 'dryerVent' | 'carpet';
+
 export interface Conversation {
   id: string;
   session_token: string;
   customer_name: string | null;
   customer_phone: string | null;
+  customer_email: string | null;
+  customer_address: string | null;
   customer_zip: string | null;
   customer_lang: Lang;
   created_at: string;
   last_message_at: string;
   unread_for_agent: number;
   unread_for_customer: number;
+  appointment_at: string | null;       // ISO timestamp
+  appointment_service: ServiceKey | string | null;
+  appointment_notes: string | null;
+  status: ConversationStatus;
+  // admin_notes is admin-only; absent on customer-side payload
+  admin_notes?: string | null;
 }
 
 export interface Message {
@@ -243,4 +261,65 @@ export async function adminMarkRead(conversationId: string) {
     .from('conversations')
     .update({ unread_for_agent: 0 })
     .eq('id', conversationId);
+}
+
+// ---------------------------------------------------------------------
+// Admin: update customer info, appointment, status, notes
+// ---------------------------------------------------------------------
+
+export interface ConversationUpdate {
+  customer_name?: string | null;
+  customer_phone?: string | null;
+  customer_email?: string | null;
+  customer_address?: string | null;
+  customer_zip?: string | null;
+  appointment_at?: string | null;
+  appointment_service?: string | null;
+  appointment_notes?: string | null;
+  admin_notes?: string | null;
+  status?: ConversationStatus;
+}
+
+export async function adminUpdateConversation(
+  conversationId: string,
+  patch: ConversationUpdate,
+): Promise<Conversation | null> {
+  if (!isSupabaseConfigured || !supabase) return null;
+  // Empty strings become null for cleanliness
+  const cleaned: Record<string, unknown> = {};
+  for (const [k, v] of Object.entries(patch)) {
+    if (typeof v === 'string' && v.trim() === '') {
+      cleaned[k] = null;
+    } else {
+      cleaned[k] = v;
+    }
+  }
+  const { data, error } = await supabase
+    .from('conversations')
+    .update(cleaned)
+    .eq('id', conversationId)
+    .select()
+    .single();
+  if (error || !data) {
+    // eslint-disable-next-line no-console
+    console.error('adminUpdateConversation error', error);
+    return null;
+  }
+  return data as Conversation;
+}
+
+export async function adminListAppointments(): Promise<Conversation[]> {
+  if (!isSupabaseConfigured || !supabase) return [];
+  const { data, error } = await supabase
+    .from('conversations')
+    .select('*')
+    .not('appointment_at', 'is', null)
+    .order('appointment_at', { ascending: true })
+    .limit(500);
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('adminListAppointments error', error);
+    return [];
+  }
+  return (data ?? []) as Conversation[];
 }

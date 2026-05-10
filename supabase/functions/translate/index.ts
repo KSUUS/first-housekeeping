@@ -65,12 +65,20 @@ Deno.serve(async (req: Request) => {
   // 1. Fetch the message
   const { data: msg, error: fetchErr } = await sb
     .from('messages')
-    .select('id, text_original, lang_original, sender')
+    .select('id, conversation_id, text_original, lang_original, sender')
     .eq('id', messageId)
     .single();
 
   if (fetchErr || !msg) {
     return json({ error: 'Message not found', detail: fetchErr?.message }, 404);
+  }
+
+  // For customer messages, kick off info extraction in the background
+  // (don't block translation on it, don't fail if it errors).
+  if (msg.sender === 'customer') {
+    extractAndStoreInfo(msg.text_original, msg.conversation_id, anthropicKey, sb).catch(
+      (e) => console.error('extractAndStoreInfo failed', e),
+    );
   }
 
   // No-op if source language already matches target
@@ -218,4 +226,94 @@ function json(body: unknown, status = 200) {
     status,
     headers: { ...corsHeaders, 'content-type': 'application/json' },
   });
+}
+
+// =====================================================================
+// Customer info extraction
+// Runs in parallel with translation. Pulls structured contact details
+// out of customer messages (names, phones, emails, addresses, ZIPs) and
+// merges them into the conversation row — only filling blank fields.
+// =====================================================================
+
+interface ExtractedInfo {
+  name?: string;
+  phone?: string;
+  email?: string;
+  address?: string;
+  zip?: string;
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+async function extractAndStoreInfo(text: string, conversationId: string, apiKey: string, sb: any) {
+  const info = await extractInfo(text, apiKey);
+  if (!info) return;
+  const hasAny = info.name || info.phone || info.email || info.address || info.zip;
+  if (!hasAny) return;
+
+  await sb.rpc('merge_extracted_customer_info', {
+    p_conversation_id: conversationId,
+    p_name: info.name ?? null,
+    p_phone: info.phone ?? null,
+    p_email: info.email ?? null,
+    p_address: info.address ?? null,
+    p_zip: info.zip ?? null,
+  });
+}
+
+async function extractInfo(text: string, apiKey: string): Promise<ExtractedInfo | null> {
+  const systemPrompt = [
+    `You extract structured contact info from customer chat messages sent to`,
+    `a residential cleaning service in metro Atlanta.`,
+    ``,
+    `Read the message and pull out any of: name, phone, email, address, ZIP code.`,
+    `Return a single JSON object — no other text, no markdown, no commentary.`,
+    ``,
+    `Schema (omit any field that is not present in the message):`,
+    `{`,
+    `  "name":    "person's full name as they wrote it",`,
+    `  "phone":   "10-digit US phone reformatted as (xxx) xxx-xxxx if recognizable",`,
+    `  "email":   "lowercase email",`,
+    `  "address": "street address only — number and street, no city/state/zip",`,
+    `  "zip":     "5-digit US ZIP code"`,
+    `}`,
+    ``,
+    `Strict rules:`,
+    `- ONLY include a field if the customer literally provided that info in this message`,
+    `- Do NOT guess, infer, or fabricate any field`,
+    `- Do NOT extract from context like "I live in Duluth" — that's a city, not an address`,
+    `- "30097" is a ZIP, "770-555-1234" is a phone, etc.`,
+    `- If nothing is present, return: {}`,
+    ``,
+    `Return ONLY the JSON object.`,
+  ].join('\n');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5',
+        max_tokens: 256,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: text }],
+      }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const block = data?.content?.[0];
+    if (!block || block.type !== 'text') return null;
+    const raw = block.text.trim();
+    // Tolerate accidental code fences
+    const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '');
+    const parsed = JSON.parse(cleaned);
+    if (typeof parsed !== 'object' || parsed === null) return null;
+    return parsed as ExtractedInfo;
+  } catch (e) {
+    console.error('extractInfo error', e);
+    return null;
+  }
 }

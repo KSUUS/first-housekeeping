@@ -7,6 +7,7 @@ import { ServiceArea } from './pages/ServiceArea';
 import { Quote } from './pages/Quote';
 import { Contact } from './pages/Contact';
 import { Admin } from './pages/Admin';
+import { Appointments } from './pages/Appointments';
 import { NotFound } from './pages/NotFound';
 import { ScrollToTop } from './components/ScrollToTop';
 import { ChatWidget } from './components/ChatWidget';
@@ -26,6 +27,7 @@ function App() {
           <Route path="/quote" element={<Quote />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/admin" element={<Admin />} />
+          <Route path="/admin/appointments" element={<Appointments />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
