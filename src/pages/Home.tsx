@@ -1,6 +1,8 @@
 import { Link } from 'react-router-dom';
 import { Wind, Flame, Sparkles, ShieldCheck, Users, Languages, Clock, ArrowRight, CheckCircle2, Phone } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { openChat } from '../lib/chat';
+import { useSEO } from '../lib/seo';
 
 const SERVICE_META = [
   {
@@ -26,7 +28,19 @@ const SERVICE_META = [
 const TRUST_ICONS = [ShieldCheck, Users, Languages, Clock];
 
 export function Home() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+
+  useSEO({
+    title:
+      lang === 'zh'
+        ? 'First Housekeeping 第一家政 | 亚特兰大空调管道、烘干机、地毯清洁'
+        : 'First Housekeeping | Air Duct, Dryer Vent & Carpet Cleaning — Atlanta GA',
+    description:
+      lang === 'zh'
+        ? '专业空调管道、烘干机管道、地毯清洁服务。覆盖 Duluth, Johns Creek, Alpharetta 及大亚特兰大地区。中英文服务，持证经营。电话 (470) 991-8071。'
+        : 'Professional air duct, dryer vent, and carpet cleaning serving Duluth, Johns Creek, Alpharetta, and metro Atlanta. Bilingual English/Chinese service. Call (470) 991-8071.',
+    path: '/',
+  });
 
   return (
     <>
@@ -45,9 +59,9 @@ export function Home() {
               {t.home.heroSubtitle}
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
-              <Link to="/quote" className="btn-accent">
+              <button type="button" onClick={openChat} className="btn-accent">
                 {t.home.ctaQuote} <ArrowRight className="w-4 h-4" />
-              </Link>
+              </button>
               <a
                 href={`tel:${t.brand.phone.replace(/[^\d+]/g, '')}`}
                 className="btn-ghost"
@@ -134,9 +148,9 @@ export function Home() {
             </h2>
             <p className="mt-3 text-brand-100 max-w-2xl mx-auto">{t.home.ctaBlockBody}</p>
             <div className="mt-7 flex flex-wrap gap-3 justify-center">
-              <Link to="/quote" className="btn-accent">
+              <button type="button" onClick={openChat} className="btn-accent">
                 {t.home.ctaQuote}
-              </Link>
+              </button>
               <a
                 href={`tel:${t.brand.phone.replace(/[^\d+]/g, '')}`}
                 className="inline-flex items-center justify-center gap-2 rounded-lg bg-white/10 border border-white/30 px-5 py-3 text-white font-medium hover:bg-white/20 transition-colors"

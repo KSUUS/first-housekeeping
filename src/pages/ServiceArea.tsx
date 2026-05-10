@@ -2,14 +2,34 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Calculator, CheckCircle2, AlertCircle, HelpCircle } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { openChat } from '../lib/chat';
+import { useSEO } from '../lib/seo';
+import { CITIES } from '../lib/cities';
 import { lookupZip, FREE_RADIUS_MILES, PER_MILE_FEE, type DistanceLookupResult, type NotFoundResult } from '../lib/zipDistances';
 
 type Result = DistanceLookupResult | NotFoundResult | null;
 
 export function ServiceArea() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const [zip, setZip] = useState('');
   const [result, setResult] = useState<Result>(null);
+
+  useSEO({
+    title:
+      lang === 'zh'
+        ? '服务范围 — 亚特兰大及周边地区 | First Housekeeping 第一家政'
+        : 'Service Area — Atlanta &amp; Surrounding Cities | First Housekeeping',
+    description:
+      lang === 'zh'
+        ? '服务覆盖 Duluth, Johns Creek, Suwanee, Alpharetta, Roswell, Norcross, Lawrenceville, Marietta 等大亚特兰大地区。Duluth 起 20 英里内免路费。'
+        : 'We serve Duluth, Johns Creek, Suwanee, Alpharetta, Roswell, Norcross, Lawrenceville, Marietta, and metro Atlanta. Free service within 20 miles of Duluth.',
+    path: '/service-area',
+  });
+
+  // Helper: turn each city name into a slug if it matches a known city
+  const citySlugByName: Record<string, string> = Object.fromEntries(
+    CITIES.map((c) => [c.name, c.slug]),
+  );
 
   const handleCheck = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,20 +100,34 @@ export function ServiceArea() {
             {t.serviceArea.areasTitle}
           </h2>
           <div className="mt-8 flex flex-wrap justify-center gap-2 max-w-4xl mx-auto">
-            {t.serviceArea.areas.map((city) => (
-              <span
-                key={city}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-sm text-slate-700"
-              >
-                <MapPin className="w-3.5 h-3.5 text-brand-500" />
-                {city}
-              </span>
-            ))}
+            {t.serviceArea.areas.map((city) => {
+              const slug = citySlugByName[city];
+              const baseClass =
+                'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-white border border-slate-200 text-sm text-slate-700';
+              if (slug) {
+                return (
+                  <Link
+                    key={city}
+                    to={`/locations/${slug}`}
+                    className={`${baseClass} hover:border-brand-400 hover:text-brand-700 transition-colors`}
+                  >
+                    <MapPin className="w-3.5 h-3.5 text-brand-500" />
+                    {city}
+                  </Link>
+                );
+              }
+              return (
+                <span key={city} className={baseClass}>
+                  <MapPin className="w-3.5 h-3.5 text-brand-500" />
+                  {city}
+                </span>
+              );
+            })}
           </div>
           <div className="mt-10 text-center">
-            <Link to="/quote" className="btn-accent">
+            <button type="button" onClick={openChat} className="btn-accent">
               {t.nav.quote}
-            </Link>
+            </button>
           </div>
         </div>
       </section>

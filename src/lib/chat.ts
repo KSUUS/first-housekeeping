@@ -4,6 +4,19 @@ import type { Lang } from '../i18n/translations';
 // Re-export so the chat widget can import everything from one place
 export { isSupabaseConfigured };
 
+/**
+ * Fire a global event the ChatWidget listens for. Lets any CTA on any
+ * page open the chat panel without React Router or prop-drilling.
+ *
+ *   import { openChat } from '../lib/chat';
+ *   <button onClick={openChat}>Get a quote</button>
+ */
+export const OPEN_CHAT_EVENT = 'fh:open-chat';
+export function openChat() {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new Event(OPEN_CHAT_EVENT));
+}
+
 const SESSION_KEY = 'fh.chat.session';
 
 export type Sender = 'customer' | 'agent';

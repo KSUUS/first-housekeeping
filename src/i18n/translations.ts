@@ -8,7 +8,7 @@ export const translations = {
     brand: {
       name: 'First Housekeeping',
       tagline: 'Air Duct, Dryer Vent & Carpet Cleaning',
-      phone: '(770) 555-0123', // TODO: replace with real number
+      phone: '(470) 991-8071', // TODO: replace with real number
       email: 'info@firsthousekeeping.com',
       address: 'Serving Atlanta & surrounding areas, GA',
     },
@@ -29,7 +29,7 @@ export const translations = {
       heroSubtitle:
         'Professional air duct, dryer vent, and carpet cleaning for homes and businesses across Atlanta and surrounding areas.',
       ctaQuote: 'Get a Free Quote',
-      ctaCall: 'Call (770) 555-0123',
+      ctaCall: 'Call (470) 991-8071',
       trustBar: {
         licensed: 'Licensed & Insured',
         local: 'Local, Family-Operated',
@@ -72,7 +72,7 @@ export const translations = {
           'Helps allergy and asthma sufferers breathe easier',
           'Improves HVAC efficiency — lower energy bills',
           'Removes musty odors at the source',
-          'Recommended every 3–5 years (sooner if pets, smokers, or recent renovation)',
+          'Regular cleaning recommended — more frequent if pets, smokers, or recent renovation',
         ],
         process: [
           'Inspection — we walk through your system and identify problem areas',
@@ -85,13 +85,13 @@ export const translations = {
       dryerVent: {
         title: 'Dryer Vent Cleaning',
         short:
-          'A clogged dryer vent is the #1 cause of house fires from appliances. Annual cleaning protects your home and saves energy.',
+          'A clogged dryer vent is the #1 cause of house fires from appliances. Regular cleaning protects your home and saves energy.',
         benefits: [
           'Prevents lint buildup — the leading cause of dryer fires (US Fire Administration)',
           'Cuts drying time in half when severely clogged',
           'Lowers energy bills (clogged vents force the dryer to overwork)',
           'Extends the life of your dryer',
-          'Recommended once every 12 months',
+          'Regular cleaning recommended for safety and efficiency',
         ],
         process: [
           'Disconnect the dryer and inspect the full vent line',
@@ -179,15 +179,15 @@ export const translations = {
         submitting: 'Sending...',
         successTitle: 'Thanks — we got it!',
         successBody:
-          'We\'ll review your request and get back to you within one business day. For urgent help, please call (770) 555-0123.',
-        errorBody: 'Something went wrong. Please call us directly at (770) 555-0123.',
+          'We\'ll review your request and get back to you within one business day. For urgent help, please call (470) 991-8071.',
+        errorBody: 'Something went wrong. Please call us directly at (470) 991-8071.',
       },
     },
     contact: {
       title: 'Contact Us',
       subtitle: 'Questions? We\'re here to help.',
       hours: 'Hours',
-      hoursValue: 'Mon–Sat 8am–7pm, Sun by appointment',
+      hoursValue: 'Mon–Sat 9am–5pm',
       callTitle: 'Call or Text',
       emailTitle: 'Email',
       areaTitle: 'Service Area',
@@ -313,9 +313,9 @@ export const translations = {
     brand: {
       name: '第一家政',
       tagline: '空调管道 · 烘干机管道 · 地毯清洗',
-      phone: '(770) 555-0123', // 待替换
+      phone: '(470) 991-8071', // 待替换
       email: 'info@firsthousekeeping.com',
-      address: '服务大亚特兰大地区',
+      address: '服务亚特兰大及周边地区',
     },
     nav: {
       home: '首页',
@@ -334,7 +334,7 @@ export const translations = {
       heroSubtitle:
         '专业空调管道、烘干机管道和地毯清洁服务，覆盖亚特兰大及周边地区，住宅和商业均可。',
       ctaQuote: '免费获取报价',
-      ctaCall: '电话 (770) 555-0123',
+      ctaCall: '电话 (470) 991-8071',
       trustBar: {
         licensed: '持证经营 · 全额保险',
         local: '本地家族经营',
@@ -375,7 +375,7 @@ export const translations = {
           '帮助过敏和哮喘患者更轻松呼吸',
           '提高空调效率 — 降低电费',
           '从源头消除霉味、异味',
-          '建议每 3–5 年清洁一次（养宠、吸烟或刚装修可缩短周期）',
+          '建议定期清洁（养宠、吸烟或刚装修可加强频率）',
         ],
         process: [
           '检查 — 现场检查系统，找出重点区域',
@@ -388,13 +388,13 @@ export const translations = {
       dryerVent: {
         title: '烘干机管道清洁',
         short:
-          '烘干机管道堵塞是家电火灾的头号原因。每年清洁一次，保障家庭安全，节省能源。',
+          '烘干机管道堵塞是家电火灾的头号原因。定期清洁，保障家庭安全，节省能源。',
         benefits: [
           '防止棉絮堆积 — 烘干机起火的首要原因（美国消防局数据）',
           '严重堵塞时，可缩短烘干时间一半',
           '降低电费（管道堵塞会让烘干机过度运转）',
           '延长烘干机使用寿命',
-          '建议每 12 个月清洁一次',
+          '建议定期清洁，保障安全和效率',
         ],
         process: [
           '断开烘干机，检查整段排风管',
@@ -480,15 +480,15 @@ export const translations = {
         submitting: '提交中...',
         successTitle: '谢谢！我们已收到您的申请。',
         successBody:
-          '我们会在一个工作日内回复您。如紧急需求，请直接致电 (770) 555-0123。',
-        errorBody: '提交出现问题，请直接致电 (770) 555-0123。',
+          '我们会在一个工作日内回复您。如紧急需求，请直接致电 (470) 991-8071。',
+        errorBody: '提交出现问题，请直接致电 (470) 991-8071。',
       },
     },
     contact: {
       title: '联系我们',
       subtitle: '有任何问题随时联系我们。',
       hours: '营业时间',
-      hoursValue: '周一至周六 8am–7pm，周日预约制',
+      hoursValue: '周一至周六 9am–5pm',
       callTitle: '电话/短信',
       emailTitle: '邮箱',
       areaTitle: '服务范围',

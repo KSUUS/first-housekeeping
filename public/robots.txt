@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Admin section is private
+Disallow: /admin
+Disallow: /admin/
+
+Sitemap: https://firsthousekeeping.com/sitemap.xml

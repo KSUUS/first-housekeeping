@@ -1,9 +1,22 @@
 import { useState } from 'react';
-import { Phone, Mail, MapPin, Clock, MessageSquare } from 'lucide-react';
+import { Phone, MapPin, Clock, MessageSquare } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useSEO } from '../lib/seo';
 
 export function Contact() {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
+
+  useSEO({
+    title:
+      lang === 'zh'
+        ? '联系我们 | First Housekeeping 第一家政'
+        : 'Contact Us | First Housekeeping — Atlanta Cleaning',
+    description:
+      lang === 'zh'
+        ? '电话 (470) 991-8071，营业时间周一至周六 9am–5pm。微信扫码加好友。服务亚特兰大及周边地区。'
+        : 'Call us at (470) 991-8071. Hours Mon–Sat 9am–5pm. WeChat available. Serving Atlanta and surrounding areas.',
+    path: '/contact',
+  });
 
   return (
     <>
@@ -21,22 +34,13 @@ export function Contact() {
       </section>
 
       <section className="pb-16">
-        <div className="container-tight max-w-3xl grid sm:grid-cols-2 gap-6">
+        <div className="container-tight max-w-3xl grid sm:grid-cols-3 gap-6">
           <ContactCard Icon={Phone} title={t.contact.callTitle}>
             <a
               href={`tel:${t.brand.phone.replace(/[^\d+]/g, '')}`}
               className="text-brand-700 hover:text-brand-800 font-medium text-lg"
             >
               {t.brand.phone}
-            </a>
-          </ContactCard>
-
-          <ContactCard Icon={Mail} title={t.contact.emailTitle}>
-            <a
-              href={`mailto:${t.brand.email}`}
-              className="text-brand-700 hover:text-brand-800 font-medium break-all"
-            >
-              {t.brand.email}
             </a>
           </ContactCard>
 

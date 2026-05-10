@@ -14,6 +14,7 @@ import {
   Save,
 } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { useSEO } from '../lib/seo';
 import { supabase, isSupabaseConfigured } from '../lib/supabase';
 import {
   adminListConversations,
@@ -40,6 +41,14 @@ export function AdminGuard({ children }: { children: ReactNode }) {
   const { t } = useLanguage();
   const [session, setSession] = useState<unknown>(null);
   const [loading, setLoading] = useState(true);
+
+  // Tell search engines to skip admin pages
+  useSEO({
+    title: 'Admin · 管理后台 | First Housekeeping',
+    description: 'First Housekeeping admin dashboard.',
+    path: '/admin',
+    noindex: true,
+  });
 
   useEffect(() => {
     if (!isSupabaseConfigured || !supabase) {

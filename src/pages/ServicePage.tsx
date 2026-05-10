@@ -1,6 +1,49 @@
-import { Link } from 'react-router-dom';
 import { Wind, Flame, Sparkles, CheckCircle2, ArrowRight, Phone } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { openChat } from '../lib/chat';
+import { useSEO, serviceSchema } from '../lib/seo';
+
+type ServiceKeyLocal = 'airDuct' | 'dryerVent' | 'carpet';
+
+const SEO_BY_SERVICE: Record<ServiceKeyLocal, {
+  slug: string;
+  enTitle: string;
+  zhTitle: string;
+  enDescription: string;
+  zhDescription: string;
+  enName: string;
+}> = {
+  airDuct: {
+    slug: 'air-duct-cleaning',
+    enTitle: 'Air Duct Cleaning Atlanta | Duluth, Johns Creek, Alpharetta | First Housekeeping',
+    zhTitle: '亚特兰大空调管道清洁 — Duluth / Johns Creek / Alpharetta | 第一家政',
+    enDescription:
+      'Professional air duct cleaning in metro Atlanta. Remove dust, pollen, mold, and allergens. Improve HVAC efficiency and indoor air quality. Free quote: (470) 991-8071.',
+    zhDescription:
+      '专业空调管道清洁服务，覆盖大亚特兰大地区。清除灰尘、花粉、霉菌、过敏原，提升空调效率和室内空气质量。中英文服务，免费报价 (470) 991-8071。',
+    enName: 'Air Duct Cleaning',
+  },
+  dryerVent: {
+    slug: 'dryer-vent-cleaning',
+    enTitle: 'Dryer Vent Cleaning Atlanta | First Housekeeping — Duluth GA',
+    zhTitle: '亚特兰大烘干机管道清洁 | 第一家政',
+    enDescription:
+      'Prevent dryer fires and cut energy bills with professional dryer vent cleaning in metro Atlanta. Same-week appointments. Bilingual EN/中文. Call (470) 991-8071.',
+    zhDescription:
+      '专业烘干机管道清洁，防止家电火灾，节省电费。覆盖大亚特兰大地区，本周可上门。中英文服务，电话 (470) 991-8071。',
+    enName: 'Dryer Vent Cleaning',
+  },
+  carpet: {
+    slug: 'carpet-cleaning',
+    enTitle: 'Carpet Cleaning Atlanta | Eco-Friendly & Pet-Safe | First Housekeeping',
+    zhTitle: '亚特兰大地毯清洗 — 环保儿童宠物安全 | 第一家政',
+    enDescription:
+      'Deep hot-water carpet cleaning across metro Atlanta. Removes dirt, stains, allergens, and pet odors. Eco-friendly, pet- and child-safe. Free quote: (470) 991-8071.',
+    zhDescription:
+      '专业热水萃取地毯清洗，覆盖大亚特兰大地区。深度清除污垢、污渍、过敏原和宠物气味。环保配方，儿童宠物安心。电话 (470) 991-8071。',
+    enName: 'Carpet Cleaning',
+  },
+};
 
 type ServiceKey = 'airDuct' | 'dryerVent' | 'carpet';
 
@@ -11,9 +54,21 @@ const ICON_MAP = {
 };
 
 export function ServicePage({ service }: { service: ServiceKey }) {
-  const { t } = useLanguage();
+  const { t, lang } = useLanguage();
   const data = t.services[service];
   const { Icon, color } = ICON_MAP[service];
+  const seoMeta = SEO_BY_SERVICE[service];
+
+  useSEO({
+    title: lang === 'zh' ? seoMeta.zhTitle : seoMeta.enTitle,
+    description: lang === 'zh' ? seoMeta.zhDescription : seoMeta.enDescription,
+    path: `/services/${seoMeta.slug}`,
+    jsonLd: serviceSchema({
+      name: seoMeta.enName,
+      description: seoMeta.enDescription,
+      url: `https://firsthousekeeping.com/services/${seoMeta.slug}`,
+    }),
+  });
 
   return (
     <>
@@ -30,9 +85,9 @@ export function ServicePage({ service }: { service: ServiceKey }) {
             {data.short}
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/quote" className="btn-accent">
+            <button type="button" onClick={openChat} className="btn-accent">
               {t.services.ctaQuote} <ArrowRight className="w-4 h-4" />
-            </Link>
+            </button>
             <a
               href={`tel:${t.brand.phone.replace(/[^\d+]/g, '')}`}
               className="btn-ghost"
@@ -83,9 +138,9 @@ export function ServicePage({ service }: { service: ServiceKey }) {
             <p className="mt-3 text-2xl sm:text-3xl text-brand-700 font-semibold">
               {data.priceFrom}
             </p>
-            <Link to="/quote" className="btn-accent mt-7">
+            <button type="button" onClick={openChat} className="btn-accent mt-7">
               {t.services.ctaQuote}
-            </Link>
+            </button>
           </div>
         </div>
       </section>

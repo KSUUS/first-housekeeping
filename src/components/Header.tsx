@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { Menu, Phone, X, Wind, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { openChat } from '../lib/chat';
 import { cn } from '../lib/utils';
 
 const SERVICE_LINKS = [
@@ -109,9 +110,13 @@ export function Header() {
             <Phone className="w-4 h-4" />
             <span className="hidden xl:inline">{t.brand.phone}</span>
           </a>
-          <Link to="/quote" className="btn-accent text-sm py-2 whitespace-nowrap">
+          <button
+            type="button"
+            onClick={openChat}
+            className="btn-accent text-sm py-2 whitespace-nowrap"
+          >
             {t.nav.quote}
-          </Link>
+          </button>
         </div>
 
         {/* Mobile actions */}
@@ -166,9 +171,13 @@ export function Header() {
                 <Phone className="w-4 h-4" />
                 {t.nav.callNow}
               </a>
-              <Link to="/quote" className="btn-accent text-sm py-2 flex-1">
+              <button
+                type="button"
+                onClick={() => { setMobileOpen(false); openChat(); }}
+                className="btn-accent text-sm py-2 flex-1"
+              >
                 {t.nav.quote}
-              </Link>
+              </button>
             </div>
           </nav>
         </div>

@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
-import { Phone, Mail, MapPin } from 'lucide-react';
+import { Phone, MapPin } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
+import { openChat } from '../lib/chat';
 
 export function Footer() {
   const { t } = useLanguage();
@@ -50,9 +51,13 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link to="/quote" className="hover:text-white transition-colors">
+              <button
+                type="button"
+                onClick={openChat}
+                className="hover:text-white transition-colors"
+              >
                 {t.nav.quote}
-              </Link>
+              </button>
             </li>
             <li>
               <Link to="/contact" className="hover:text-white transition-colors">
@@ -71,12 +76,6 @@ export function Footer() {
               <Phone className="w-4 h-4 mt-0.5 text-brand-400" />
               <a href={`tel:${t.brand.phone.replace(/[^\d+]/g, '')}`} className="hover:text-white">
                 {t.brand.phone}
-              </a>
-            </li>
-            <li className="flex items-start gap-2">
-              <Mail className="w-4 h-4 mt-0.5 text-brand-400" />
-              <a href={`mailto:${t.brand.email}`} className="hover:text-white break-all">
-                {t.brand.email}
               </a>
             </li>
             <li className="flex items-start gap-2">

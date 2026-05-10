@@ -7,6 +7,7 @@ import {
   sendCustomerMessage,
   startCustomerPolling,
   markCustomerRead,
+  OPEN_CHAT_EVENT,
   type Conversation,
   type Message,
 } from '../lib/chat';
@@ -45,6 +46,13 @@ function RealChat() {
         setMessages(data.messages);
       }
     });
+  }, []);
+
+  // Listen for global "open chat" event (fired by any CTA across the site)
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener(OPEN_CHAT_EVENT, handler);
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, handler);
   }, []);
 
   // Poll while panel is open
@@ -374,6 +382,14 @@ function ChatFallback() {
   const [open, setOpen] = useState(false);
   const tel = t.brand.phone.replace(/[^\d+]/g, '');
 
+  // Same global "open chat" event listener — keeps CTAs working even
+  // before Supabase is configured.
+  useEffect(() => {
+    const handler = () => setOpen(true);
+    window.addEventListener(OPEN_CHAT_EVENT, handler);
+    return () => window.removeEventListener(OPEN_CHAT_EVENT, handler);
+  }, []);
+
   return (
     <>
       <Bubble open={open} unread={0} onClick={() => setOpen((o) => !o)} label={t.chat.bubbleLabel} />
@@ -391,9 +407,6 @@ function ChatFallback() {
             </a>
             <a href={`sms:${tel}`} className="btn-ghost w-full text-sm py-2.5">
               {t.chat.smsBtn}
-            </a>
-            <a href={`mailto:${t.brand.email}`} className="btn-ghost w-full text-sm py-2.5">
-              {t.chat.emailBtn}
             </a>
             {import.meta.env.DEV && (
               <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-xs text-amber-900 leading-relaxed">
