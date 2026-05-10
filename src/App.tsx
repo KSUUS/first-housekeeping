@@ -6,8 +6,10 @@ import { ServicePage } from './pages/ServicePage';
 import { ServiceArea } from './pages/ServiceArea';
 import { Quote } from './pages/Quote';
 import { Contact } from './pages/Contact';
+import { Admin } from './pages/Admin';
 import { NotFound } from './pages/NotFound';
 import { ScrollToTop } from './components/ScrollToTop';
+import { ChatWidget } from './components/ChatWidget';
 
 function App() {
   return (
@@ -23,10 +25,12 @@ function App() {
           <Route path="/service-area" element={<ServiceArea />} />
           <Route path="/quote" element={<Quote />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </main>
       <Footer />
+      <ChatWidget />
     </div>
   );
 }
