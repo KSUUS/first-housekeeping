@@ -106,19 +106,40 @@ export async function loadConversation(): Promise<{
   return data as { conversation: Conversation; messages: Message[] };
 }
 
+/**
+ * Detect the language of an actual chat message from its content.
+ * The UI lang toggle is just a display preference — what the customer
+ * actually typed is what matters for routing translation.
+ *
+ * Heuristic: count CJK characters vs Latin letters.
+ * - More Chinese than Latin → 'zh'
+ * - Otherwise → 'en'
+ * - Ties bias to 'en' (safer: translate when in doubt so mom always gets Chinese)
+ */
+function detectLang(text: string): Lang {
+  const cjk = (text.match(/[㐀-鿿　-〿]/g) || []).length;
+  const latin = (text.match(/[A-Za-z]/g) || []).length;
+  return cjk > latin ? 'zh' : 'en';
+}
+
 export async function sendCustomerMessage(input: {
   text: string;
-  lang: Lang;
+  lang: Lang; // UI lang — kept for legacy reasons but ignored for routing
   customerName?: string;
   customerPhone?: string;
   customerZip?: string;
 }): Promise<Message | null> {
   if (!isSupabaseConfigured || !supabase) return null;
   const token = getSessionToken();
+
+  // Detect language from the actual text content, not from UI toggle state.
+  // (A customer can have the UI in 中文 mode but still type English.)
+  const detectedLang = detectLang(input.text);
+
   const { data, error } = await supabase.rpc('send_customer_message', {
     p_session_token: token,
     p_text: input.text,
-    p_lang: input.lang,
+    p_lang: detectedLang,
     p_customer_name: input.customerName ?? null,
     p_customer_phone: input.customerPhone ?? null,
     p_customer_zip: input.customerZip ?? null,
@@ -130,9 +151,8 @@ export async function sendCustomerMessage(input: {
   }
   const msg = data as Message;
 
-  // Trigger background translation if customer language is not Chinese
-  // (mom always reads Chinese)
-  if (input.lang !== 'zh') {
+  // Translate if the message isn't already in mom's language
+  if (detectedLang !== 'zh') {
     void requestTranslation(msg.id, 'zh');
   }
   return msg;
