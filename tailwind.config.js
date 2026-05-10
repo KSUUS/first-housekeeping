@@ -28,6 +28,9 @@ export default {
         center: true,
         padding: { DEFAULT: "1rem", lg: "2rem" },
       },
+      spacing: {
+        "18": "4.5rem", // 72px — used for header height to fit larger logo
+      },
     },
   },
   plugins: [],

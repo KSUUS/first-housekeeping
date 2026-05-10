@@ -40,15 +40,15 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200">
-      <div className="container-tight flex items-center justify-between h-16 gap-4">
+      <div className="container-tight flex items-center justify-between h-18 gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
           <img
             src="/logo.png"
             alt="First Housekeeping logo"
-            className="w-10 h-10 object-contain"
-            width="40"
-            height="40"
+            className="w-12 h-12 sm:w-14 sm:h-14 object-contain"
+            width="56"
+            height="56"
           />
           <span className="font-bold text-slate-900 text-lg leading-tight whitespace-nowrap">
             {t.brand.name}
