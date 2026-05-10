@@ -65,7 +65,7 @@ Deno.serve(async (req: Request) => {
   // 1. Fetch the message
   const { data: msg, error: fetchErr } = await sb
     .from('messages')
-    .select('id, text_original, lang_original')
+    .select('id, text_original, lang_original, sender')
     .eq('id', messageId)
     .single();
 
@@ -83,9 +83,18 @@ Deno.serve(async (req: Request) => {
   }
 
   // 2. Translate via Anthropic Claude
+  // Direction matters:
+  //  - customer → agent: faithful translation (agent needs to know exactly what customer said)
+  //  - agent → customer: polish into warm, professional customer-service tone
   let translated: string;
   try {
-    translated = await translate(msg.text_original, msg.lang_original, targetLang, anthropicKey);
+    translated = await translate(
+      msg.text_original,
+      msg.lang_original,
+      targetLang,
+      msg.sender as 'customer' | 'agent',
+      anthropicKey,
+    );
   } catch (e) {
     return json({ error: 'Translation failed', detail: String(e) }, 502);
   }
@@ -107,17 +116,12 @@ async function translate(
   text: string,
   fromLang: string,
   toLang: 'en' | 'zh',
+  sender: 'customer' | 'agent',
   apiKey: string,
 ): Promise<string> {
-  const langName = (l: string) => (l === 'zh' ? 'Simplified Chinese (简体中文)' : 'English');
-
-  const systemPrompt =
-    `You are translating live chat messages between a residential cleaning service ` +
-    `(air duct, dryer vent, carpet cleaning) and its customers in metro Atlanta. ` +
-    `Translate the user's message from ${langName(fromLang)} to ${langName(toLang)}. ` +
-    `Keep the tone friendly and conversational. Preserve numbers, addresses, ZIP codes, ` +
-    `phone numbers, dates, and times exactly. ` +
-    `Return ONLY the translation — no quotes, no commentary, no prefix like "Translation:".`;
+  const systemPrompt = sender === 'agent'
+    ? agentReplyPrompt(fromLang, toLang)
+    : customerMessagePrompt(fromLang, toLang);
 
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
@@ -145,6 +149,68 @@ async function translate(
     throw new Error('Unexpected Anthropic response shape');
   }
   return block.text.trim();
+}
+
+/**
+ * Customer → Agent: faithful, conversational translation.
+ * The agent (mom) needs to understand the customer accurately, including
+ * their wording, tone, and any small details (urgency, politeness, etc.).
+ */
+function customerMessagePrompt(fromLang: string, toLang: 'en' | 'zh'): string {
+  const langName = (l: string) => (l === 'zh' ? 'Simplified Chinese (简体中文)' : 'English');
+  return [
+    `You are translating an incoming chat message from a CUSTOMER to a residential cleaning service`,
+    `(air duct, dryer vent, carpet cleaning) operating in metro Atlanta, Georgia.`,
+    `Translate the customer's message from ${langName(fromLang)} to ${langName(toLang)}.`,
+    ``,
+    `Goals:`,
+    `- Faithful, accurate translation — do not add information, do not omit information`,
+    `- Natural conversational tone (match the customer's register: casual stays casual, formal stays formal)`,
+    `- Preserve numbers, addresses, ZIP codes, phone numbers, dates, and times EXACTLY`,
+    `- Keep place names (e.g. Duluth, Johns Creek, Sandy Springs) in their original English form`,
+    `- Keep brand names and proper nouns in their original form`,
+    ``,
+    `Return ONLY the translation. No quotes, no commentary, no prefix like "Translation:".`,
+  ].join('\n');
+}
+
+/**
+ * Agent → Customer: polish the owner's reply into professional, warm
+ * customer-service English. The owner often types brief, casual Chinese
+ * (sometimes with typos or sentence fragments). Our job is to convey her
+ * meaning in polished English that builds trust without inventing details.
+ */
+function agentReplyPrompt(fromLang: string, toLang: 'en' | 'zh'): string {
+  const langName = (l: string) => (l === 'zh' ? 'Simplified Chinese (简体中文)' : 'English');
+  return [
+    `You are helping the Chinese-speaking owner of "First Housekeeping" — a small,`,
+    `family-operated residential cleaning service in metro Atlanta (air duct, dryer vent,`,
+    `and carpet cleaning) — reply to her English-speaking customer in real-time chat.`,
+    ``,
+    `Take her ${langName(fromLang)} message and produce a polished ${langName(toLang)} version`,
+    `suitable for a professional cleaning company speaking with a homeowner.`,
+    ``,
+    `Style and tone:`,
+    `- Warm, friendly, professional — like a small-business owner who genuinely cares`,
+    `- Natural American English (think: a polite small-business reply, not a corporate script)`,
+    `- Concise — match the length and intent of her message; never add fluff or marketing`,
+    `- If she's asking a question, keep it as a question`,
+    `- If she made a commitment (price, time, availability), keep that commitment exactly`,
+    ``,
+    `Faithfulness rules (very important):`,
+    `- Do NOT invent prices, times, addresses, services, or guarantees she did not state`,
+    `- Do NOT add details that weren't in her message ("we have 20 years of experience", etc.)`,
+    `- Preserve all numbers, addresses, ZIP codes, phone numbers, dates, and times EXACTLY`,
+    `- If her Chinese has a typo or odd phrasing, infer the meaning charitably and produce clear English`,
+    `- If she uses casual particles (好的, 没问题, 哈), translate the warmth without literal translation`,
+    ``,
+    `Light polish allowed:`,
+    `- Add a polite opening like "Hi!" or "Sure," if her message starts abruptly`,
+    `- Smooth out grammar and produce complete sentences`,
+    `- Use contractions naturally ("you're", "we'll") for warmth`,
+    ``,
+    `Return ONLY the polished English message. No quotes, no commentary, no prefix.`,
+  ].join('\n');
 }
 
 function json(body: unknown, status = 200) {

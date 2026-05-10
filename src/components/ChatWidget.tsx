@@ -59,12 +59,29 @@ function RealChat() {
     }
   }, [open, conversation]);
 
-  // Auto-scroll to bottom on new messages
+  // Hide agent messages that haven't been translated yet — we don't want
+  // the customer to see Chinese flash on screen before it becomes English.
+  const visibleMessages = messages.filter((m) => {
+    if (m.sender === 'customer') return true;
+    if (m.lang_original === lang) return true; // same language, no translation needed
+    return Boolean(m.text_translated); // wait for translation
+  });
+
+  // If any agent message is pending translation, show a typing indicator
+  // so the customer knows mom is typing instead of staring at silence.
+  const showTyping = messages.some(
+    (m) =>
+      m.sender === 'agent' &&
+      m.lang_original !== lang &&
+      !m.text_translated,
+  );
+
+  // Auto-scroll to bottom on new visible messages or typing indicator
   useEffect(() => {
     if (scrollRef.current) {
       scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
     }
-  }, [messages, open]);
+  }, [visibleMessages.length, showTyping, open]);
 
   const handleSend = async () => {
     const text = input.trim();
@@ -134,11 +151,15 @@ function RealChat() {
           {/* Messages */}
           <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-slate-50">
             {/* Welcome bubble (always shown if no messages yet) */}
-            {messages.length === 0 && <WelcomeBubble text={t.chat.welcomeBubble} />}
+            {visibleMessages.length === 0 && !showTyping && (
+              <WelcomeBubble text={t.chat.welcomeBubble} />
+            )}
 
-            {messages.map((m) => (
+            {visibleMessages.map((m) => (
               <MessageBubble key={m.id} message={m} customerLang={lang} t={t} />
             ))}
+
+            {showTyping && <TypingIndicator />}
           </div>
 
           {/* Input */}
@@ -175,6 +196,29 @@ function WelcomeBubble({ text }: { text: string }) {
     <div className="flex justify-start">
       <div className="max-w-[85%] rounded-2xl bg-white border border-slate-200 px-4 py-2.5 text-sm text-slate-700 shadow-sm">
         {text}
+      </div>
+    </div>
+  );
+}
+
+function TypingIndicator() {
+  return (
+    <div className="flex justify-start">
+      <div className="rounded-2xl bg-white border border-slate-200 rounded-bl-sm px-4 py-3 shadow-sm">
+        <div className="flex gap-1 items-center h-4">
+          <span
+            className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+            style={{ animationDelay: '0ms', animationDuration: '1s' }}
+          />
+          <span
+            className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+            style={{ animationDelay: '150ms', animationDuration: '1s' }}
+          />
+          <span
+            className="w-2 h-2 rounded-full bg-slate-400 animate-bounce"
+            style={{ animationDelay: '300ms', animationDuration: '1s' }}
+          />
+        </div>
       </div>
     </div>
   );
