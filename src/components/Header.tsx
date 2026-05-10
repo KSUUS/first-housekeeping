@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { Menu, Phone, X, Wind, ChevronDown } from 'lucide-react';
+import { Menu, Phone, X, ChevronDown } from 'lucide-react';
 import { useLanguage } from '../i18n/LanguageContext';
 import { openChat } from '../lib/chat';
 import { cn } from '../lib/utils';
@@ -43,9 +43,13 @@ export function Header() {
       <div className="container-tight flex items-center justify-between h-16 gap-4">
         {/* Logo */}
         <Link to="/" className="flex items-center gap-2 shrink-0">
-          <span className="inline-flex items-center justify-center w-9 h-9 rounded-lg bg-brand-600 text-white">
-            <Wind className="w-5 h-5" />
-          </span>
+          <img
+            src="/logo.png"
+            alt="First Housekeeping logo"
+            className="w-10 h-10 object-contain"
+            width="40"
+            height="40"
+          />
           <span className="font-bold text-slate-900 text-lg leading-tight whitespace-nowrap">
             {t.brand.name}
           </span>

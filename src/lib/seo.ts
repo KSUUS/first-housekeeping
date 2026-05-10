@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 
 const SITE_URL = 'https://firsthousekeeping.com';
 const SITE_NAME = 'First Housekeeping';
-const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.jpg`; // optional — drop a 1200x630 image in /public
+const DEFAULT_OG_IMAGE = `${SITE_URL}/logo.png`; // TODO: replace with proper 1200x630 OG image when available
 
 export interface SEOInput {
   /** Full HTML <title>. Should include brand name. */
