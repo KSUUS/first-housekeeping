@@ -114,7 +114,7 @@ export const translations = {
         process: [
           'Pre-inspection and stain assessment',
           'Pre-treatment of high-traffic areas and stains',
-          'Hot-water extraction with truck-mount or portable equipment',
+          'High-temperature steam cleaning',
           'Spot treatment + grooming for an even finish',
         ],
         priceFrom: 'Starting at $99 per room (3 rooms minimum)',
@@ -416,7 +416,7 @@ export const translations = {
         process: [
           '预检与污渍评估',
           '高频区和污渍预处理',
-          '使用车载或便携设备进行热水萃取',
+          '高温蒸汽清洗',
           '局部处理 + 整理梳理，确保均匀效果',
         ],
         priceFrom: '$99 起/房间（最少 3 间）',
