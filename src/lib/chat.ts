@@ -341,6 +341,90 @@ export async function adminUpdateConversation(
   return data as Conversation;
 }
 
+// ---------------------------------------------------------------------
+// Admin: duplicate detection & merge
+// ---------------------------------------------------------------------
+
+/** Find other conversations sharing the same phone or address. */
+export async function adminFindDuplicates(conversation: Conversation): Promise<Conversation[]> {
+  if (!isSupabaseConfigured || !supabase) return [];
+  if (!conversation.customer_phone && !conversation.customer_address) return [];
+
+  const conditions: string[] = [];
+  if (conversation.customer_phone) conditions.push(`customer_phone.eq.${conversation.customer_phone}`);
+  if (conversation.customer_address) conditions.push(`customer_address.eq.${conversation.customer_address}`);
+
+  const { data, error } = await supabase
+    .from('conversations')
+    .select('*')
+    .neq('id', conversation.id)
+    .neq('status', 'closed')
+    .or(conditions.join(','))
+    .order('last_message_at', { ascending: false });
+
+  if (error) {
+    // eslint-disable-next-line no-console
+    console.error('adminFindDuplicates error', error);
+    return [];
+  }
+  return (data ?? []) as Conversation[];
+}
+
+/**
+ * Merge duplicateId into primaryId:
+ * 1. Move all messages to primary.
+ * 2. Fill in any missing customer fields on primary from duplicate.
+ * 3. Close the duplicate conversation.
+ */
+export async function adminMergeConversations(
+  primaryId: string,
+  duplicateId: string,
+): Promise<boolean> {
+  if (!isSupabaseConfigured || !supabase) return false;
+
+  // 1. Move messages
+  const { error: msgErr } = await supabase
+    .from('messages')
+    .update({ conversation_id: primaryId })
+    .eq('conversation_id', duplicateId);
+  if (msgErr) {
+    // eslint-disable-next-line no-console
+    console.error('adminMergeConversations messages error', msgErr);
+    return false;
+  }
+
+  // 2. Backfill missing fields on primary
+  const [{ data: primary }, { data: dup }] = await Promise.all([
+    supabase.from('conversations').select('*').eq('id', primaryId).single(),
+    supabase.from('conversations').select('*').eq('id', duplicateId).single(),
+  ]);
+
+  if (primary && dup) {
+    const patch: Record<string, unknown> = {};
+    if (!primary.customer_name && dup.customer_name) patch.customer_name = dup.customer_name;
+    if (!primary.customer_phone && dup.customer_phone) patch.customer_phone = dup.customer_phone;
+    if (!primary.customer_email && dup.customer_email) patch.customer_email = dup.customer_email;
+    if (!primary.customer_address && dup.customer_address) patch.customer_address = dup.customer_address;
+    if (!primary.customer_zip && dup.customer_zip) patch.customer_zip = dup.customer_zip;
+    if (Object.keys(patch).length > 0) {
+      await supabase.from('conversations').update(patch).eq('id', primaryId);
+    }
+  }
+
+  // 3. Close the duplicate
+  const { error: closeErr } = await supabase
+    .from('conversations')
+    .update({ status: 'closed' })
+    .eq('id', duplicateId);
+  if (closeErr) {
+    // eslint-disable-next-line no-console
+    console.error('adminMergeConversations close error', closeErr);
+    return false;
+  }
+
+  return true;
+}
+
 export async function adminListAppointments(): Promise<Conversation[]> {
   if (!isSupabaseConfigured || !supabase) return [];
   const { data, error } = await supabase

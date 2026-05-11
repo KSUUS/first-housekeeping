@@ -22,6 +22,8 @@ import {
   adminSendMessage,
   adminMarkRead,
   adminUpdateConversation,
+  adminFindDuplicates,
+  adminMergeConversations,
   type Conversation,
   type ConversationStatus,
   type Message,
@@ -538,6 +540,12 @@ function ConversationPane({
         ))}
       </div>
 
+      {/* Duplicate customer banner */}
+      <DuplicatesBanner
+        conversation={conversation}
+        onMerged={onAfterUpdate}
+      />
+
       {/* Reply input */}
       <div className="border-t border-slate-200 bg-white p-3">
         <div className="flex gap-2 items-end">
@@ -784,6 +792,84 @@ function CustomerDetailsDrawer({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+// =====================================================================
+// Duplicate customer banner
+// =====================================================================
+
+function DuplicatesBanner({
+  conversation,
+  onMerged,
+}: {
+  conversation: Conversation;
+  onMerged: (updated: Conversation) => void;
+}) {
+  const [dupes, setDupes] = useState<Conversation[]>([]);
+  const [merging, setMerging] = useState<string | null>(null);
+  const [dismissed, setDismissed] = useState<string[]>([]);
+
+  useEffect(() => {
+    setDupes([]);
+    setDismissed([]);
+    if (conversation.customer_phone || conversation.customer_address) {
+      void adminFindDuplicates(conversation).then(setDupes);
+    }
+  }, [conversation.id, conversation.customer_phone, conversation.customer_address]);
+
+  const visible = dupes.filter((d) => !dismissed.includes(d.id));
+  if (visible.length === 0) return null;
+
+  const handleMerge = async (duplicateId: string) => {
+    setMerging(duplicateId);
+    const ok = await adminMergeConversations(conversation.id, duplicateId);
+    setMerging(null);
+    if (ok) {
+      setDupes((prev) => prev.filter((d) => d.id !== duplicateId));
+      // Reload current conversation to reflect backfilled fields
+      const { data } = await import('../lib/supabase').then(({ supabase: sb }) =>
+        sb!.from('conversations').select('*').eq('id', conversation.id).single()
+      );
+      if (data) onMerged(data as Conversation);
+    }
+  };
+
+  return (
+    <div className="border-t border-amber-200 bg-amber-50 px-4 py-2 space-y-1.5">
+      {visible.map((d) => {
+        const matchOn = d.customer_phone === conversation.customer_phone
+          ? `电话 ${d.customer_phone}`
+          : `地址 ${d.customer_address}`;
+        return (
+          <div key={d.id} className="flex items-center justify-between gap-3 text-xs">
+            <span className="text-amber-800">
+              ⚠️ 发现重复客人（{matchOn}）：
+              <span className="font-medium ml-1">{d.customer_name || '匿名'}</span>
+              <span className="ml-1 text-amber-600">{formatTime(d.last_message_at)}</span>
+            </span>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                disabled={merging === d.id}
+                onClick={() => void handleMerge(d.id)}
+                className="inline-flex items-center gap-1 rounded px-2 py-1 bg-amber-600 text-white hover:bg-amber-700 disabled:opacity-50 transition-colors"
+              >
+                {merging === d.id ? '合并中…' : '合并到这里'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setDismissed((p) => [...p, d.id])}
+                className="text-amber-500 hover:text-amber-700"
+                aria-label="忽略"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
