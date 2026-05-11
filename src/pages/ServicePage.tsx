@@ -130,15 +130,11 @@ export function ServicePage({ service }: { service: ServiceKey }) {
         </div>
       </section>
 
-      {/* Pricing */}
+      {/* CTA */}
       <section className="section bg-slate-50">
         <div className="container-tight">
           <div className="rounded-2xl bg-white border border-slate-200 p-8 sm:p-10 max-w-3xl mx-auto text-center">
-            <h2 className="text-2xl font-bold">{t.services.pricingLabel}</h2>
-            <p className="mt-3 text-2xl sm:text-3xl text-brand-700 font-semibold">
-              {data.priceFrom}
-            </p>
-            <button type="button" onClick={openChat} className="btn-accent mt-7">
+            <button type="button" onClick={openChat} className="btn-accent">
               {t.services.ctaQuote}
             </button>
           </div>

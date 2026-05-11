@@ -77,7 +77,6 @@ export const translations = {
         process: [
           'Inspection — we walk through your system and identify problem areas',
           'Source removal — high-powered vacuum + agitation tools clean every supply, return, and main trunk',
-          'Sanitization (optional) — EPA-registered antimicrobial treatment',
           'Final walkthrough — before/after photos so you can see the difference',
         ],
         priceFrom: 'Starting at $299 (single system, up to 10 vents)',
@@ -380,7 +379,6 @@ export const translations = {
         process: [
           '检查 — 现场检查系统，找出重点区域',
           '清洁 — 大功率真空 + 搅动工具，每一个出风口、回风口和主管道全部清理',
-          '消毒（可选） — EPA 认证抗菌处理',
           '最终验收 — 提供清洁前后对比照片',
         ],
         priceFrom: '$299 起（单系统，最多 10 个出风口）',
