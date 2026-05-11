@@ -103,7 +103,7 @@ export const translations = {
       carpet: {
         title: 'Carpet Cleaning',
         short:
-          'Deep hot-water extraction that lifts dirt, allergens, and stains — restoring carpets to like-new condition.',
+          'High-temperature steam cleaning that lifts dirt, allergens, and stains — restoring carpets to like-new condition.',
         benefits: [
           'Removes deep-down dirt vacuums leave behind',
           'Eliminates allergens, dust mites, and pet dander',
@@ -405,7 +405,7 @@ export const translations = {
       carpet: {
         title: '地毯清洗',
         short:
-          '深度热水萃取，清除污垢、过敏原和顽固污渍，让地毯焕然一新。',
+          '高温蒸汽清洗，清除污垢、过敏原和顽固污渍，让地毯焕然一新。',
         benefits: [
           '清除真空吸尘器无法触及的深层污垢',
           '消除过敏原、尘螨和宠物毛屑',
