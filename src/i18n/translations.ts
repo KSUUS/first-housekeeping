@@ -358,7 +358,7 @@ export const translations = {
         },
         {
           title: '扎根 Duluth',
-          body: '总部位于 Duluth，覆盖整个大亚特兰大地区。熟悉每一个社区。',
+          body: '总部位于 Duluth，覆盖亚特兰大及周边地区。熟悉每一个社区。',
         },
       ],
       ctaBlockTitle: '准备好让家里更清洁、更健康了吗？',
